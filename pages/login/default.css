@@ -1,0 +1,180 @@
+/* 登录页面全局样式 */
+.login-container {
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 96rpx;
+  box-sizing: border-box;
+  position: relative;
+  background-image: url('/static/login/new-back.png');
+  background-size: 100% 100%;
+}
+
+.logo-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 70rpx;
+}
+
+.logo-image {
+  width: 200rpx;
+  height: 200rpx;
+  margin-bottom: 22rpx;
+  border-radius: 40rpx;
+}
+
+.logo-title {
+  font-size: 56rpx;
+  font-weight: 700;
+  color: #101724;
+}
+
+.form-container {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 50rpx;
+  box-sizing: border-box;
+}
+
+.input-item {
+  width: 100%;
+  height: 96rpx;
+  background: #F6F9FE;
+  border-radius: 30rpx;
+  /* border: 2rpx solid #dce5ef; */
+  display: flex;
+  align-items: center;
+  margin-bottom: 24rpx;
+  padding: 0 24rpx;
+  box-sizing: border-box;
+  position: relative;
+}
+
+.input-icon {
+  width: 34rpx;
+  height: 34rpx;
+  margin-right: 16rpx;
+  opacity: 0.7;
+}
+
+.input {
+  flex: 1;
+  height: 100%;
+  font-size: 28rpx;
+  color: #333;
+  background: transparent;
+}
+
+.eye-icon {
+  width: 34rpx;
+  height: 34rpx;
+}
+
+.link-area {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin: 24rpx 0 0 0;
+  background-color: #101724;
+}
+.link {
+  font-size: 30rpx;
+  color: #bcc5cf;
+  font-weight: 600;
+}
+
+.link.right {
+  margin-left: 0;
+}
+/* 右上角问号图标 */
+.question-icon {
+  position: absolute;
+  top: 105rpx;
+  right: 40rpx;
+  width: 54rpx;
+  height: 54rpx;
+  z-index: 9999; /* 设置更高的z-index确保在导航栏之上 */
+}
+.login-btn {
+  width: 500rpx;
+  height: 90rpx;
+  line-height: 90rpx;
+  background: #428EFC;
+  border-radius: 45rpx;
+  color: #fff;
+  font-size: 30rpx;
+  font-weight: 600;
+  border: none;
+  margin-top: 26rpx;
+}
+.register-btn {
+  width: 500rpx;
+  height: 90rpx;
+  line-height: 90rpx;
+  background: url('/static/login/btn-back.png') no-repeat center;
+		background-size: 100% 100%;
+		background-color: transparent;
+		border: none;
+  border-radius: 45rpx;
+  color: #fff;
+  font-size: 30rpx;
+  font-weight: 600;
+  border: none;
+  margin-top: 26rpx;
+}
+.footer {
+	position: fixed;
+	left: 50rpx;
+	right: 50rpx;
+	bottom: 36rpx;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+}
+
+.agreement-area {
+  display: flex;
+  align-items: center;
+  margin-top: 20rpx;
+}
+
+.checkbox {
+  width: 28rpx;
+  height: 28rpx;
+  margin-right: 10rpx;
+}
+
+.agreement-text {
+  font-size: 28rpx;
+  color: #A4A4A4;
+  flex: 1;
+}
+
+.agreement-link {
+  color: #3496ff;
+}
+
+.input::-webkit-input-placeholder {
+  color: #c5cbd3;
+  font-size: 34rpx;
+}
+
+.input::-moz-placeholder {
+  color: #999;
+  font-size: 28rpx;
+}
+
+.input:-ms-input-placeholder {
+  color: #999;
+  font-size: 28rpx;
+}
+
+.input::placeholder {
+  color: #c5cbd3;
+  font-size: 34rpx;
+}

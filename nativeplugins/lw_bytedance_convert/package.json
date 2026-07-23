@@ -1,0 +1,20 @@
+{
+	"name": "lw_bytedance_convert",
+	"id": "lw_bytedance_convert",
+	"version": "0.0.1",
+	"description": "抖音巨量sdk",
+	"_dp_type":"nativeplugin",
+	"_dp_nativeplugin":{
+		"android": {
+			"plugins": [
+				{
+					"type": "module",
+					"name": "lw_bytedance_convert",
+					"class": "com.lw.lw_bytedance_convert.BytedanceConvertModule"
+				}
+			],
+			"integrateType": "aar",
+			"minSdkVersion" : 21
+		}
+	}
+}

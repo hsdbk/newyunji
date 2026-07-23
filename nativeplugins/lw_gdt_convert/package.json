@@ -1,0 +1,20 @@
+{
+	"name": "lw_gdt_convert",
+	"id": "lw_gdt_convert",
+	"version": "0.0.1",
+	"description": "腾讯广告sdk",
+	"_dp_type":"nativeplugin",
+	"_dp_nativeplugin":{
+		"android": {
+			"plugins": [
+				{
+					"type": "module",
+					"name": "lw_gdt_convert",
+					"class": "com.lw.lw_gdt_convert.GDTConvertModule"
+				}
+			],
+			"integrateType": "aar",
+			"minSdkVersion" : 21
+		}
+	}
+}

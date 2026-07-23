@@ -1,0 +1,414 @@
+{
+	"easycom": {
+		"custom": {
+			"^u--(.*)": "uview-plus/components/u-$1/u-$1.vue",
+			"^up-(.*)": "uview-plus/components/u-$1/u-$1.vue",
+			"^u-([^-].*)": "uview-plus/components/u-$1/u-$1.vue"
+		}
+	},
+	"pages": [
+		{
+			"path" : "pages/icon/icon",
+			"style" : 
+			{
+				"navigationBarTitleText" : "",
+				"navigationStyle": "custom",
+				"enablePullDownRefresh": "true"
+			}
+		},
+		{
+			"path" : "pages/webview/webview",
+			"style" : 
+			{
+				"navigationBarTitleText" : "客服中心",
+				"navigationBarBackgroundColor": "#FFFFFF",
+				"navigationBarTextStyle": "black"
+			}
+		},
+		{
+			"path": "pages/index/index",
+			"style": {
+				"navigationBarTitleText": "首页",
+				"navigationStyle": "custom"
+			}
+		},{
+			"path": "pages/index/signin",
+			"style": {
+				"navigationBarTitleText": "每日打卡",
+				"navigationStyle": "custom"
+			}
+		},			{
+			"path": "pages/index/physical",
+			"style": {
+				"navigationBarTitleText": "实名认证"
+			}
+		},{
+			"path": "pages/index/new",
+			"style": {
+				"navigationBarTitleText": "新用户专享"
+			}
+		},{
+			"path": "pages/my/download",
+			"style": {
+				"navigationBarTitleText": "下载信息"
+			}
+		},{
+			"path": "pages/index/invite",
+			"style": {
+				"navigationBarTitleText": "邀请好友"
+			}
+		},{
+			"path": "pages/index/invite-ranking",
+			"style": {
+				"navigationBarTitleText": "今日邀请排行榜"
+			}
+		},{
+			"path": "pages/index/idiom-chain/index",
+			"style": {
+				"navigationBarTitleText": "成语接龙"
+			}
+		},{
+			"path": "pages/index/idiom-chain/game",
+			"style": {
+				"navigationBarTitleText": "成语接龙",
+				"navigationStyle": "custom"
+			}
+		},{
+			"path": "pages/index/advertisement",
+			"style": {
+				"navigationBarTitleText": "观看广告赚金币"
+			}
+		},
+		{
+			"path" : "pages/login/login",
+			"style" : 
+			{
+				"navigationBarTitleText" : "",
+				"enablePullDownRefresh" : false,
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path" : "pages/login/register",
+			"style" : 
+			{
+				"navigationBarTitleText" : "",
+				"enablePullDownRefresh" : false,
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path" : "pages/login/password",
+			"style" : 
+			{
+				"navigationBarTitleText" : "",
+				"enablePullDownRefresh" : false,
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path" : "pages/farm/farm",
+			"style" : 
+			{
+				"navigationBarTitleText" : "",
+				"enablePullDownRefresh" : false,
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path" : "pages/shop/shop",
+			"style" : 
+			{
+				"navigationBarTitleText" : "商城",
+				"navigationStyle": "custom"
+			}
+		},{
+			"path" : "pages/shop/project-detail",
+			"style" : 
+			{
+				"navigationBarTitleText" : "项目详情"
+			}
+		},{
+			"path" : "pages/shop/detail",
+			"style" : 
+			{
+				"navigationBarTitleText" : "",
+				"navigationStyle": "custom"
+			}
+		},{
+			"path" : "pages/my/contract",
+			"style" : 
+			{
+				"navigationBarTitleText" : "合同详情"
+			}
+		},{
+			"path" : "pages/shop/logistics",
+			"style" : 
+			{
+				"navigationBarTitleText" : "物流信息"
+			}
+		},{
+			"path" : "pages/shop/logistics-detail",
+			"style" : 
+			{
+				"navigationBarTitleText" : "物流信息"
+			}
+		},{
+			"path" : "pages/shop/record-order",
+			"style" : 
+			{
+				"navigationBarTitleText" : "购买记录",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path" : "pages/recommend/recommend",
+			"style" : 
+			{
+				"navigationBarTitleText" : "",
+				"enablePullDownRefresh" : false,
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path" : "pages/my/my",
+			"style" : 
+			{
+				"navigationBarTitleText" : "",
+				"enablePullDownRefresh" : false,
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path" : "pages/my/recharge",
+			"style" : 
+			{
+				"navigationBarTitleText" : "快速充值"
+			}
+		},{
+			"path" : "pages/my/invest-log",
+			"style" : 
+			{
+				"navigationBarTitleText" : "我的认购"
+			}
+		},{
+			"path" : "pages/my/gold-log",
+			"style" : 
+			{
+				"navigationBarTitleText" : "我的雨滴"
+			}
+		},{
+			"path" : "pages/my/invest-detail",
+			"style" : 
+			{
+				"navigationBarTitleText" : "认购详情"
+			}
+		},{
+			"path" : "pages/my/withdraw",
+			"style" : 
+			{
+				"navigationBarTitleText" : "余额提现",
+				"navigationStyle": "custom"
+			}
+		},{
+			"path" : "pages/my/funds-log",
+			"style" : 
+			{
+				"navigationBarTitleText" : "资金明细"
+			}
+		},{
+			"path" : "pages/my/eran-log",
+			"style" : 
+			{
+				"navigationBarTitleText" : "累计收益"
+			}
+		},{
+			"path" : "pages/my/settings",
+			"style" : 
+			{
+				"navigationBarTitleText" : "账号安全"
+			}
+		},{
+			"path" : "pages/my/settings/settings-profile",
+			"style" : 
+			{
+				"navigationBarTitleText" : "设置"
+			}
+		},{
+			"path" : "pages/my/settings/settings-info",
+			"style" : 
+			{
+				"navigationBarTitleText" : "设置"
+			}
+		},{
+			"path" : "pages/my/settings/settings-avatar",
+			"style" : 
+			{
+				"navigationBarTitleText" : "个人头像",
+				"navigationStyle": "custom"
+			}
+		},{
+			"path" : "pages/my/settings/settings-password",
+			"style" : 
+			{
+				"navigationBarTitleText" : "设置"
+			}
+		},{
+			"path" : "pages/my/settings/settings-place",
+			"style" : 
+			{
+				"navigationBarTitleText" : "收货地址"
+			}
+		},{
+			"path" : "pages/my/settings/edit-address",
+			"style" : 
+			{
+				"navigationBarTitleText" : "更新地址"
+			}
+		},{
+			"path" : "pages/my/settings/question",
+			"style" : 
+			{
+				"navigationBarTitleText" : "常见问题"
+			}
+		},{
+			"path" : "pages/my/settings/agreement",
+			"style" : 
+			{
+				"navigationBarTitleText" : ""
+			}
+		},{
+			"path" : "pages/my/settings/vip",
+			"style" : 
+			{
+				"navigationBarTitleText" : "我的会员",
+				"navigationStyle": "custom"
+			}
+		},{
+			"path" : "pages/my/payment-method",
+			"style" : 
+			{
+				"navigationBarTitleText" : "添加提现方式"
+			}
+		},{
+			"path" : "pages/my/payment-way",
+			"style" : 
+			{
+				"navigationBarTitleText" : ""
+			}
+		},{
+			"path" : "pages/index/weather",
+			"style" : 
+			{
+				"navigationBarTitleText" : "天气预报",
+				"navigationStyle": "custom",
+				"renderer": "web"
+			}
+		},{
+			"path" : "pages/index/day",
+			"style" : 
+			{
+				"navigationBarTitleText" : "天气预报",
+				"navigationStyle": "custom",
+				"renderer": "web"
+			}
+		},{
+			"path" : "pages/my/message-detail",
+			"style" : 
+			{
+				"navigationBarTitleText" : "消息详情"
+			}
+		},{
+			"path" : "pages/farm/task",
+			"style" : 
+			{
+				"navigationBarTitleText" : "任务中心"
+			}
+		},{
+			"path" : "pages/my/message",
+			"style" : 
+			{
+				"navigationBarTitleText" : "我的消息"
+			}
+		},
+		{
+			"path" : "pages/recommend/coupon",
+			"style" : 
+			{
+				"navigationBarTitleText" : "我的券包"
+			}
+		},{
+			"path" : "pages/recommend/share",
+			"style" : 
+			{
+				"navigationBarTitleText" : "分享"
+			}
+		},
+		{
+			"path" : "pages/my/payment-change",
+			"style" : 
+			{
+				"navigationBarTitleText" : ""
+			}
+		},
+		{
+			"path" : "pages/index/video",
+			"style" : 
+			{
+				"navigationBarTitleText" : "",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path" : "pages/index/video-player",
+			"style" : 
+			{
+				"navigationBarTitleText" : "",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path" : "pages/my/question",
+			"style" : 
+			{
+				"navigationBarTitleText" : "客服"
+			}
+		},
+		{
+			"path" : "pages/shop/cart",
+			"style" : 
+			{
+				"navigationBarTitleText" : "购物车"
+			}
+		},
+		{
+			"path" : "pages/shop/order-confirm",
+			"style" : 
+			{
+				"navigationBarTitleText" : "下单"
+			}
+		},
+		{
+			"path" : "pages/my/settings/terms",
+			"style" : 
+			{
+				"navigationBarTitleText" : "协议"
+			}
+		}
+		
+	],
+	"globalStyle": {
+		"navigationBarTextStyle": "black",
+		"navigationBarTitleText": "uni-app",
+		"navigationBarBackgroundColor": "#F8F8F8",
+		"backgroundColor": "#F8F8F8"
+	},
+	"tabBar": {
+			"color": "#cccccc",
+			"selectedColor": "#120062",
+			"borderStyle": "black",
+			"backgroundColor": "#ffffff",
+			"list": []
+		},
+	"uniIdRouter": {}
+}

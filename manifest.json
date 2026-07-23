@@ -1,0 +1,201 @@
+{
+    "name" : "新云季",
+    "appid" : "__UNI__D59E07E",
+    "description" : "新云季",
+    "versionName" : "1.1.2",
+    "versionCode" : 112,
+    "transformPx" : false,
+    /* 5+App特有相关 */
+    "app-plus" : {
+        "usingComponents" : true,
+        "nvueStyleCompiler" : "uni-app",
+        "compilerVersion" : 3,
+        "privacy" : {
+            "prompt" : "template"
+        },
+        "splashscreen" : {
+            "alwaysShowBeforeRender" : true,
+            "waiting" : true,
+            "autoclose" : true,
+            "delay" : 0
+        },
+        /* 模块配置 */
+        "modules" : {
+            "Camera" : {},
+            "VideoPlayer" : {},
+            "Geolocation" : {}
+        },
+        /* 应用发布信息 */
+        "distribute" : {
+            /* android打包配置 */
+            "android" : {
+                "permissions" : [
+                    "<uses-permission android:name=\"android.permission.INTERNET\"/>", // 网络权限（必备）
+                    "<uses-permission android:name=\"android.permission.CHANGE_NETWORK_STATE\"/>",
+                    "<uses-permission android:name=\"android.permission.ACCESS_WIFI_STATE\"/>",
+                    "<uses-feature android:name=\"android.hardware.camera.autofocus\"/>",
+                    "<uses-permission android:name=\"android.permission.ACCESS_NETWORK_STATE\"/>",
+                    "<uses-permission android:name=\"android.permission.CAMERA\"/>",
+                    "<uses-permission android:name=\"android.permission.CHANGE_WIFI_STATE\"/>",
+                    "<uses-permission android:name=\"android.permission.WAKE_LOCK\"/>",
+                    "<uses-permission android:name=\"android.permission.FLASHLIGHT\"/>",
+                    "<uses-feature android:name=\"android.hardware.camera\"/>",
+                    "<uses-permission android:name=\"android.permission.WRITE_EXTERNAL_STORAGE\"/>", // 写入存储（需动态申请）
+                    "<uses-permission android:name=\"android.permission.READ_EXTERNAL_STORAGE\"/>", // 读取存储（需动态申请）
+                    "<uses-permission android:name=\"android.permission.ACCESS_COARSE_LOCATION\"/>",
+                    "<uses-permission android:name=\"android.permission.ACCESS_FINE_LOCATION\"/>"
+                ],
+                "permissionPhone" : {
+                    // 示例：电话权限的文案配置（按需加）
+                    "android.permission.CALL_PHONE" : "是否允许“云季途”拨打电话？以便快速联系客服。"
+                },
+                "permissionLocation" : {
+                    // 精确定位权限（你的需求）
+                    "android.permission.ACCESS_FINE_LOCATION" : "是否允许“云季途”访问位置信息？以便为您提供天气服务。",
+                    // 可选：模糊定位权限，若申请了也建议配文案
+                    "android.permission.ACCESS_COARSE_LOCATION" : "是否允许“云季途”访问大致位置信息？以便为您提供基础天气服务。"
+                },
+                // - android.permission.MOUNT_UNMOUNT_FILESYSTEMS
+                // - android.permission.VIBRATE
+                // - android.permission.REQUEST_INSTALL_PACKAGES
+                // - android.permission.READ_LOGS
+                // - android.permission.GET_ACCOUNTS
+                // - android.permission.WRITE_SETTINGS
+                "abiFilters" : [ "armeabi-v7a", "arm64-v8a", "x86" ],
+                "targetSdkVersion" : 33, // 设置为 31、32、33 等（需≥30）
+                "minSdkVersion" : 21, // 最低支持的 Android 版本（建议≥21，即 Android 5.0）
+                "compileSdkVersion" : 33 // 编译时使用的 SDK 版本（需≥targetSdkVersion）
+            },
+            /* ios打包配置 */
+            "ios" : {
+                "dSYMs" : false
+            },
+            /* SDK配置 */
+            "sdkConfigs" : {
+                "geolocation" : {
+                    "amap" : {
+                        "name" : "amapgzGBXLUh",
+                        "__platform__" : [ "android" ],
+                        "appkey_ios" : "",
+                        "appkey_android" : "b2096165bddbb8699e3d5d85ec74da5c"
+                    }
+                }
+            },
+            "splashscreen" : {
+                "androidStyle" : "default",
+                "android" : {
+                    "hdpi" : "unpackage/yunjitu/480.png",
+                    "xhdpi" : "unpackage/yunjitu/720.png",
+                    "xxhdpi" : "unpackage/yunjitu/1080.png"
+                },
+                "iosStyle" : "common",
+                "useOriginalMsgbox" : true
+            },
+            "icons" : {
+                "android" : {
+                    "hdpi" : "unpackage/res/icons/72x72.png",
+                    "xhdpi" : "unpackage/res/icons/96x96.png",
+                    "xxhdpi" : "unpackage/res/icons/144x144.png",
+                    "xxxhdpi" : "unpackage/res/icons/192x192.png"
+                },
+                "ios" : {
+                    "appstore" : "unpackage/res/icons/1024x1024.png",
+                    "ipad" : {
+                        "app" : "unpackage/res/icons/76x76.png",
+                        "app@2x" : "unpackage/res/icons/152x152.png",
+                        "notification" : "unpackage/res/icons/20x20.png",
+                        "notification@2x" : "unpackage/res/icons/40x40.png",
+                        "proapp@2x" : "unpackage/res/icons/167x167.png",
+                        "settings" : "unpackage/res/icons/29x29.png",
+                        "settings@2x" : "unpackage/res/icons/58x58.png",
+                        "spotlight" : "unpackage/res/icons/40x40.png",
+                        "spotlight@2x" : "unpackage/res/icons/80x80.png"
+                    },
+                    "iphone" : {
+                        "app@2x" : "unpackage/res/icons/120x120.png",
+                        "app@3x" : "unpackage/res/icons/180x180.png",
+                        "notification@2x" : "unpackage/res/icons/40x40.png",
+                        "notification@3x" : "unpackage/res/icons/60x60.png",
+                        "settings@2x" : "unpackage/res/icons/58x58.png",
+                        "settings@3x" : "unpackage/res/icons/87x87.png",
+                        "spotlight@2x" : "unpackage/res/icons/80x80.png",
+                        "spotlight@3x" : "unpackage/res/icons/120x120.png"
+                    }
+                }
+            }
+        },
+        "nativePlugins" : {
+            // "lw_gdt_convert" : {
+            //     "__plugin_info__" : {
+            //         "name" : "lw_gdt_convert",
+            //         "description" : "腾讯广告sdk",
+            //         "platforms" : "Android",
+            //         "url" : "",
+            //         "android_package_name" : "",
+            //         "ios_bundle_id" : "",
+            //         "isCloud" : false,
+            //         "bought" : -1,
+            //         "pid" : "",
+            //         "parameters" : {}
+            //     }
+            // },
+            "lw_bytedance_convert" : {
+                "__plugin_info__" : {
+                    "name" : "lw_bytedance_convert",
+                    "description" : "抖音广告sdk",
+                    "platforms" : "Android",
+                    "url" : "",
+                    "android_package_name" : "",
+                    "ios_bundle_id" : "",
+                    "isCloud" : false,
+                    "bought" : -1,
+                    "pid" : "",
+                    "parameters" : {}
+                }
+            }
+        },
+        "uniStatistics" : {
+            "enable" : false
+        }
+    },
+    /* 快应用特有相关 */
+    "quickapp" : {},
+    /* 小程序特有相关 */
+    "mp-weixin" : {
+        "appid" : "",
+        "setting" : {
+            "urlCheck" : false
+        },
+        "usingComponents" : true
+    },
+    "mp-alipay" : {
+        "usingComponents" : true
+    },
+    "mp-baidu" : {
+        "usingComponents" : true
+    },
+    "mp-toutiao" : {
+        "usingComponents" : true
+    },
+    "uniStatistics" : {
+        "enable" : false
+    },
+    "vueVersion" : "3",
+    "fallbackLocale" : "zh-Hans",
+    "h5" : {
+        "sdkConfigs" : {
+            "maps" : {
+                "amap" : {
+                    "key" : "21c325e714ef274a00c4b06bb64f3a1b",
+                    "securityJsCode" : "ee70f0a4e6fb4010063c3c2f84351dbb",
+                    "serviceHost" : ""
+                }
+            }
+        }
+    },
+    "app-harmony" : {
+        "uniStatistics" : {
+            "enable" : false
+        }
+    }
+}

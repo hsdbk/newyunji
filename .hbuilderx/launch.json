@@ -1,0 +1,11 @@
+{
+    "version" : "1.0",
+    "configurations" : [
+        {
+            "customPlaygroundType" : "device",
+            "packageName" : "",
+            "playground" : "standard",
+            "type" : "uni-app:app-android"
+        }
+    ]
+}
