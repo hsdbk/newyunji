@@ -23,7 +23,8 @@
         "modules" : {
             "Camera" : {},
             "VideoPlayer" : {},
-            "Geolocation" : {}
+            "Geolocation" : {},
+            "Payment" : {}
         },
         /* 应用发布信息 */
         "distribute" : {
@@ -78,6 +79,11 @@
                         "__platform__" : [ "android" ],
                         "appkey_ios" : "",
                         "appkey_android" : "b2096165bddbb8699e3d5d85ec74da5c"
+                    }
+                },
+                "payment" : {
+                    "alipay" : {
+                        "__platform__" : [ "android" ]
                     }
                 }
             },

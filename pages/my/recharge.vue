@@ -48,20 +48,6 @@
                     <image class="payment-checkbox" :src="$getStaticSrc('/static/my/right-more.png')" mode="aspectFit"></image>
                 </view>
             </view>
-			<view class="pay-show" v-if="codeShow" @click="saveImage($baseUrl + codeUrl)">
-				<!-- 加载动画 -->
-				<view class="image-loading" v-if="isImageLoading">
-					<u-loading-icon mode="circle" size="40"></u-loading-icon>
-				</view>
-				<image 
-					style="width:600rpx;height:600rpx;" 
-					:src="$baseUrl + codeUrl" 
-					mode="aspectFit"
-					@load="isImageLoading = false"
-					@error="isImageLoading = false"
-					v-show="!isImageLoading"
-				></image>
-			</view>
 			<view class="payment-item wx-back" v-if="item.key== 'wx'" @click="selectPayment('wx')">
 			    <view class="payment-actions-2">
 			        <image class="payment-check" :src="selectedPayment === 'wx' ? '/static/my/check.png' : '/static/my/uncheck.png'" mode="aspectFit"></image>
@@ -117,6 +103,21 @@
             </view>
         </view>
         </view>
+
+		<view class="pay-show" v-if="codeShow" @click="saveImage($baseUrl + codeUrl)">
+			<!-- 加载动画 -->
+			<view class="image-loading" v-if="isImageLoading">
+				<u-loading-icon mode="circle" size="40"></u-loading-icon>
+			</view>
+			<image 
+				style="width:600rpx;height:600rpx;" 
+				:src="$baseUrl + codeUrl" 
+				mode="aspectFit"
+				@load="isImageLoading = false"
+				@error="isImageLoading = false"
+				v-show="!isImageLoading"
+			></image>
+		</view>
 		
 		<!-- <view class="amount-section" v-if="accountStatus">
 		    <text class="section-title">订单号</text>
@@ -426,6 +427,11 @@ export default {
         },
         // 显示弹窗
         showZfbPopup() {
+            this.refreshZfbMethods()
+            if (!this.selectedZfbMethods.length) {
+                this.$u.toast('暂无支付宝充值通道')
+                return
+            }
             this.selectedZfbshow = true
         },
         // 选择支付方式
@@ -439,8 +445,51 @@ export default {
         // 选择支付宝
         selectZfb(index) {
             this.selectedZfb = index
-			this.codeUrl = this.channelList[0].images[this.selectedZfb]
+			const alipayChannel = this.getChannelByKey('alipay')
+			if (alipayChannel && Array.isArray(alipayChannel.images) && alipayChannel.images.length) {
+				const imageIndex = Math.min(this.selectedZfb, alipayChannel.images.length - 1)
+				this.selectedZfb = imageIndex
+				this.codeUrl = alipayChannel.images[imageIndex]
+			}
         },  
+        getChannelByKey(key) {
+            return (this.channelList || []).find(item => item && item.key === key) || null
+        },
+        refreshZfbMethods() {
+            const alipayChannel = this.getChannelByKey('alipay')
+            if (alipayChannel && Array.isArray(alipayChannel.images) && alipayChannel.images.length) {
+                this.selectedZfbMethods = alipayChannel.images.map((_, index) => `支付宝${index + 1}`)
+                if (this.selectedZfb >= this.selectedZfbMethods.length) {
+                    this.selectedZfb = 0
+                }
+                this.codeUrl = alipayChannel.images[this.selectedZfb] || alipayChannel.images[0] || ''
+                return true
+            }
+            this.selectedZfbMethods = []
+            this.codeUrl = ''
+            return false
+        },
+        submitInvestApply(channelType) {
+            return this.$http(
+                '/user/invest/apply', {
+                    money: this.channelPirce,
+                    channel: channelType,
+                    pay_account: this.pay_account,
+                    remark: this.remark,
+                }, 'POST').then(res => {
+                    if (res && res.code == 200) {
+                        return res
+                    }
+                    const message = (res && res.msg) || '充值提交失败'
+                    this.$u.toast(message)
+                    throw new Error(message)
+                }).catch(err => {
+                    if (!err || !err.message) {
+                        this.$u.toast('充值提交失败')
+                    }
+                    throw err
+                })
+        },
         // 复制文本到剪贴板
         copyText(text) {
             uni.setClipboardData({
@@ -498,6 +547,57 @@ export default {
 				this.codeShow = false
 				this.payShow = false
 				this.accountStatus = false
+				this.submitInvestApply('bank').then(() => {
+					this.$http(
+						'/user/invest/channel', {
+							money:this.channelPirce
+						}, "GET").then(res => {
+							this.invest_help = res.data.invest_help
+							this.auto = res.data.auto
+							
+							if(!res.data.channel){
+								uni.showToast({
+								  title: '暂无充值方式',
+								  icon: 'none'
+								});
+								return
+							}
+							if(res.data.channel.length==0){
+								uni.showToast({
+								  title: res.data.invest_help || '请输入有效金额~',
+								  icon: 'none'
+								});
+								return false;
+							}
+							this.channelList = res.data.channel
+							this.selectedZfbMethods = []
+							this.codeUrl = ''
+							this.codeShow = false
+							this.payShow = false
+							this.accountStatus = true
+						})
+				}).catch(() => {
+					this.isAmountFixed = false
+					this.isSubmitted = false
+				})
+				return
+			}
+			if (parseFloat(this.channelPirce) <= parseFloat(this.onlinePayLimit)) {
+				this.rechargeMode = 'online'
+				this.selectedPayment = 'alipay'
+				this.codeShow = false
+				this.payShow = false
+				this.accountStatus = false
+				this.submitInvestApply('alipay').then(() => {
+					this.createOrder('alipay')
+				}).catch(() => {
+					this.isAmountFixed = false
+					this.isSubmitted = false
+				})
+				return
+			}
+			this.rechargeMode = 'scan'
+			this.submitInvestApply('alipay').then(() => {
 				this.$http(
 					'/user/invest/channel', {
 						money:this.channelPirce
@@ -520,78 +620,41 @@ export default {
 							return false;
 						}
 						this.channelList = res.data.channel
-						this.selectedZfbMethods = []
-						this.codeUrl = ''
-						this.codeShow = false
-						this.payShow = false
-						this.accountStatus = true
-					})
-				return
-			}
-			if (parseFloat(this.channelPirce) <= parseFloat(this.onlinePayLimit)) {
-				this.rechargeMode = 'online'
-				this.selectedPayment = 'alipay'
-				this.codeShow = false
-				this.payShow = false
-				this.accountStatus = false
-				this.createOrder('alipay')
-				return
-			}
-			this.rechargeMode = 'scan'
-			this.$http(
-				'/user/invest/channel', {
-					money:this.channelPirce
-				}, "GET").then(res => {
-					this.invest_help = res.data.invest_help
-					this.auto = res.data.auto
-					
-					if(!res.data.channel){
-						uni.showToast({
-						  title: '暂无充值方式',
-						  icon: 'none'
-						});
-						return
-					}
-					if(res.data.channel.length==0){
-						uni.showToast({
-						  title: res.data.invest_help || '请输入有效金额~',
-						  icon: 'none'
-						});
-						return false;
-					}
-					this.channelList = res.data.channel
-					// 重置图片加载状态
-					this.isImageLoading = true
-					// 只针对支付宝通道生成可选账户
-					if (res.data.channel[0].key === 'alipay' && res.data.channel[0].images) {
-						const imagesLength = res.data.channel[0].images.length
-						this.selectedZfbMethods = []
-						for(let i = 0; i < imagesLength; i++){
-							this.selectedZfbMethods.push(`支付宝${i + 1}`)
+						// 重置图片加载状态
+						this.isImageLoading = true
+						this.refreshZfbMethods()
+						const alipayChannel = this.getChannelByKey('alipay')
+						if (!alipayChannel || !Array.isArray(alipayChannel.images) || !alipayChannel.images.length) {
+							uni.showToast({
+							  title: '暂无支付宝充值通道',
+							  icon: 'none'
+							});
+							return
 						}
-					} else {
-						this.selectedZfbMethods = []
-					}
-					if (this.selectedPayment === 'bank') {
-						this.codeUrl = ''
-						this.codeShow = false
-						this.payShow = false
-						this.accountStatus = true
-					} else {
-						this.codeUrl = res.data.channel[0].images[this.selectedZfb]
-						this.codeShow = true
-						this.payShow = false
-						this.accountStatus = true
-					}
-					// setTimeout(() => {
-					//     this.pay_account = ""
-					//     this.channelPirce = ""
-					//     this.selectedPayment = ""
-					//     this.remark = ""
-					//     this.accountStatus = false
-					// 	uni.navigateBack()
-					// }, 3000);
-				})
+						if (this.selectedPayment === 'bank') {
+							this.codeUrl = ''
+							this.codeShow = false
+							this.payShow = false
+							this.accountStatus = true
+						} else {
+							this.codeUrl = alipayChannel.images[this.selectedZfb] || alipayChannel.images[0]
+							this.codeShow = true
+							this.payShow = false
+							this.accountStatus = true
+						}
+						// setTimeout(() => {
+						//     this.pay_account = ""
+						//     this.channelPirce = ""
+						//     this.selectedPayment = ""
+						//     this.remark = ""
+						//     this.accountStatus = false
+						// 	uni.navigateBack()
+						// }, 3000);
+					})
+			}).catch(() => {
+				this.isAmountFixed = false
+				this.isSubmitted = false
+			})
         },
 		qrcodeOrder() {
 			console.log(111)

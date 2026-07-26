@@ -2,7 +2,7 @@ import $store from './index.js';
 
 // 包内固定域名池（轮询）
 const BUILTIN_DOMAIN_POOL = [
-	// "https://h5.lelinghai.asia",
+	// "https://wkksw.hnhhr.com",
 	// 测试
 	"https://h5.paiduiyun.top",
 	// 'https://wqz2w.hlwea.com',
