@@ -1,6 +1,8 @@
 <template>
     <view class="recharge-page">
         <!-- 支付方式选择 -->
+		<view class="amount-section">
+		    <text class="section-title" v-if="!codeShow">选择充值方式</text>
         <view class="payment-methods" v-for="(item,index) in channelList" :key="index">
             <!-- 银联/手机银行 -->
             <view class="payment-item bank-back" v-if="item.key== 'bank'" @click="selectPayment('bank')">
@@ -29,7 +31,7 @@
             </view>
 
             <!-- 支付宝 -->
-            <view class="payment-item zfb-back" v-if="item.key== 'alipay'" @click="selectPayment('alipay')">
+            <view class="payment-item zfb-back" v-if="item.key== 'alipay' && payShow" @click="selectPayment('alipay')">
                 <view class="payment-actions-2">
                     <image class="payment-check" :src="selectedPayment === 'alipay' ? '/static/my/check.png' : '/static/my/uncheck.png'" mode="aspectFit"></image>
                 </view>
@@ -114,24 +116,22 @@
                 </view>
             </view>
         </view>
-		<view class="amount-section" v-if="accountStatus">
+        </view>
+		
+		<!-- <view class="amount-section" v-if="accountStatus">
 		    <text class="section-title">订单号</text>
 		    <view class="amount-display">
 				<text class="amount-cny"></text>
 				<input type="text" value="" placeholder="请输入订单号后四位" v-model="pay_account"/>
-		        <!-- <text class="amount-exchange">≈ USDT 1000.00</text> -->
 		    </view>
-		    <!-- <text class="exchange-rate">汇率: 7¥=1USDT</text> -->
-		</view>
+		</view> -->
         <!-- 充值金额 -->
         <view class="amount-section">
             <text class="section-title">充值金额</text>
             <view class="amount-display">
                 <text class="amount-cny">¥</text>
 				<input type="number" value="" placeholder="请输入充值金额" v-model="channelPirce" :disabled="isAmountFixed"/>
-                <!-- <text class="amount-exchange">≈ USDT 1000.00</text> -->
             </view>
-            <!-- <text class="exchange-rate">汇率: 7¥=1USDT</text> -->
         </view>
 
         <!-- 附言 -->
@@ -146,10 +146,12 @@
         </view>
 
         <!-- 提交按钮 -->
-        <view class="submit-section">
-            <u-button class="submit-btn" @click="submitRecharge">提交充值</u-button>
+        <view class="submit-section" v-if="payShow">
+            <u-button class="submit-btn" @click="firstRecharge">提交充值</u-button>
         </view>
-
+		<view class="submit-section" v-if="!payShow">
+		    <u-button class="submit-btn" @click="submitRecharge">完成充值</u-button>
+		</view>
         
         <!-- 如何使用欧意USDT入款教程 -->
         <view class="tips-section" v-if="selectedPayment === 'ouyi'">
@@ -215,15 +217,18 @@ export default {
 			accountStatus:false,
 			invest_help:'',
 			codeShow:false,
+			payShow:false,
 			codeUrl:'',
 			isImageLoading: true,
 			auto:false,
 			isAmountFixed: false, // 控制金额是否可编辑
+			disabledNumber:false,
+			invest_min_money:0
 			// /upload/2025/12/14/20251214161113_d0b19416.png?rid=2188
         }
     },
 	onShow() {
-		// this.initChannel()
+		this.initChannel()
 	},
     methods: {
         // 返回上一页
@@ -237,8 +242,59 @@ export default {
 			this.$http(
 				'/user/invest/channel', {money:500}, "POST").then(res => {
 				this.invest_help = res.data.invest_help
-				this.channelList = res.data.config
-				this.pay_account = res.data.config[0].bank_card
+				this.invest_min_money = res.data.invest_min_money
+				if(res.data.auto){
+					if(res.data.channel.length==0){
+						uni.showToast({
+						  title: res.data.invest_help,
+						  icon: 'none'
+						});
+					}
+					
+					this.codeShow = false
+					this.accountStatus = false
+					this.codeUrl = ""
+					// 手动充值,显示充值页面
+					this.channelList = res.data.channel
+					// this.createOrder()
+				}else{
+					if(!res.data.channel){
+						uni.showToast({
+						  title: '暂无充值方式',
+						  icon: 'none'
+						});
+					}
+					if(res.data.channel.length==0){
+						uni.showToast({
+						  title: '请输入有效金额~',
+						  icon: 'none'
+						});
+						return false;
+					}
+					
+					if(res.data.channel){
+						this.channelList = res.data.channel
+						// 重置图片加载状态
+						this.isImageLoading = true
+						
+						// 根据images数组长度动态生成selectedZfbMethods
+						const imagesLength = res.data.channel[0].images.length
+						this.selectedZfbMethods = []
+						for(let i = 0; i < imagesLength; i++){
+							this.selectedZfbMethods.push(`支付宝${i + 1}`)
+						}
+						
+						this.codeUrl = res.data.channel[0].images[this.selectedZfb]
+						// this.codeShow = true
+						this.payShow = true
+						this.accountStatus = true
+						// this.qrcodeOrder()
+						// 
+					}
+					
+					// 
+					
+				}
 			})
 		},
 		previewImage(i){
@@ -390,7 +446,31 @@ export default {
                 }
             })
         },
-
+		firstRecharge(){
+			if (!this.selectedPayment) {
+			    this.$u.toast('请选择支付方式')
+			    return
+			}
+			// if(!this.pay_account){
+			// 	this.$u.toast('请输入充值订单号后四位')
+			// 	return
+			// }
+			if(!this.channelPirce){
+				this.$u.toast('请输入充值金额')
+				return
+			}
+			if(parseFloat(this.channelPirce) < parseFloat(this.invest_min_money)){
+				this.$u.toast('最小充值金额为'+this.invest_min_money)
+				return false;
+			}
+			this.isAmountFixed = true;
+			this.codeShow = true
+			this.payShow = false
+			this.qrcodeOrder()
+			if(this.isNew){
+				
+			}
+		},
         // 提交充值
         submitRecharge() {
             
@@ -450,8 +530,17 @@ export default {
 							
 							this.codeUrl = res.data.channel[0].images[this.selectedZfb]
 							this.codeShow = true
+							this.payShow = false
 							this.accountStatus = true
-							this.qrcodeOrder()
+							// this.qrcodeOrder()
+							setTimeout(() => {
+							    this.pay_account = ""
+							    this.channelPirce = ""
+							    this.selectedPayment = ""
+							    this.remark = ""
+							    this.accountStatus = false
+								uni.navigateBack()
+							}, 3000);
 							// 
 						}
 						
@@ -487,10 +576,10 @@ export default {
 			    this.$u.toast('请选择支付方式')
 			    return
 			}
-			if(!this.pay_account){
-				this.$u.toast('请输入充值订单号后四位')
-				return
-			}
+			// if(!this.pay_account){
+			// 	this.$u.toast('请输入充值订单号后四位')
+			// 	return
+			// }
 			if(!this.channelPirce){
 				this.$u.toast('请输入充值金额')
 				return
@@ -507,13 +596,14 @@ export default {
 					  title: '充值提交成功',
 					  icon: 'none'
 					});
-					setTimeout(() => {
-					    this.pay_account = ""
-					    this.channelPirce = ""
-					    this.selectedPayment = ""
-					    this.remark = ""
-					    this.accountStatus = false
-					}, 3000);
+					// setTimeout(() => {
+					//     this.pay_account = ""
+					//     this.channelPirce = ""
+					//     this.selectedPayment = ""
+					//     this.remark = ""
+					//     this.accountStatus = false
+					// 	// uni.navigateBack()
+					// }, 3000);
 					
 				}
 			})
@@ -537,7 +627,7 @@ export default {
 					console.log('充值提交',res)
 				if(res.code == 200){
 					var url = res.data.url
-					// that.onPurchase(that.channelPirce,that.remark)
+					that.onPurchase(that.channelPirce,that.remark)
 					// #ifdef APP
 					console.log('plus!!@@')
 						uni.navigateTo({
@@ -592,14 +682,14 @@ page {
 
 /* 支付方式 */
 .payment-methods {
-    margin:0 30rpx 10rpx;
+    margin:0 0 10rpx;
     overflow: hidden;
 }
 
 .payment-item {
     display: flex;
     align-items: center;
-    padding: 20rpx;
+    padding: 30rpx;
     border-bottom: 1rpx solid #f0f0f0;
     position: relative;
     border-radius: 30rpx;
@@ -642,8 +732,8 @@ page {
 }
 
 .payment-icon {
-    width: 71rpx;
-    height: 44rpx;
+    width: 90rpx;
+    height: 64rpx;
     z-index: 3;
     margin:0 10rpx;
 }
@@ -654,7 +744,7 @@ page {
 }
 
 .payment-title {
-    font-size: 28rpx;
+    font-size: 32rpx;
     font-weight: 500;
     color: #fff;
     margin-bottom: 10rpx;
@@ -689,8 +779,8 @@ page {
     z-index: 3;
 }
 .payment-check{
-    width:30rpx;
-    height:30rpx;
+    width:35rpx;
+    height:35rpx;
 }
 .payment-checkbox {
     width: 13.03rpx;

@@ -201,7 +201,7 @@
 			if (this.isLoggedIn && this.userInfo && this.userInfo.id) {
 				this.$store.dispatch('updateUserInfo');
 			}
-			console.log(uni.getStorageSync('banner'))
+			console.log('banner!!!!!!',uni.getStorageSync('banner'))
 		},
 		methods: {
 			// 新增：统一刷新当前活跃页面的方法
@@ -244,13 +244,17 @@
 			}
 		},
 			initBanner(){
-				
+				var bannerShow = uni.getStorageSync('banner')
 				this.$http(
 					'/api/api/image', {
 						type:'huodong'
 					}, "GET").then(res => {
 					console.log('数据',res.data)
 					if(res.data.length != 0){
+						if(bannerShow){
+							this.bannerStatus = false
+							return false;
+						}
 						if (this.isLoggedIn ) {
 							this.bannerStatus = true
 							// 为每个banner项的thumb添加$baseUrl前缀，并移除url中的#符号
@@ -276,7 +280,7 @@
 			},
 			closeBanner(){
 				this.bannerStatus = false
-				uni.setStorageSync('banner',1)
+				uni.setStorageSync('banner',true)
 			},
 			hotActive(item){
 				console.log(this.banner[item].url)
