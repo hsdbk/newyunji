@@ -25,7 +25,7 @@
                         <view class="copy-btn" @click.stop="copyText(item.bank_name)">复制</view>
                     </view>
                 </view>
-                <view class="payment-actions" @click="showBankPopup" v-if="!auto">
+                <view class="payment-actions" v-if="!auto">
                     <image class="payment-checkbox" :src="$getStaticSrc('/static/my/right-more.png')" mode="aspectFit"></image>
                 </view>
             </view>
@@ -44,7 +44,7 @@
 						</view>
                     </view> -->
                 </view>
-                <view class="payment-actions" @click="showZfbPopup" v-if="!auto">
+                <view class="payment-actions" v-if="!auto">
                     <image class="payment-checkbox" :src="$getStaticSrc('/static/my/right-more.png')" mode="aspectFit"></image>
                 </view>
             </view>
@@ -61,7 +61,7 @@
 			        	</view>
 			        </view>
 			    </view>
-			    <view class="payment-actions" @click="showZfbPopup" v-if="!auto">
+			    <view class="payment-actions" v-if="!auto">
 			        <image class="payment-checkbox" :src="$getStaticSrc('/static/my/right-more.png')" mode="aspectFit"></image>
 			    </view>
 			</view>
