@@ -2,12 +2,12 @@ import $store from './index.js';
 
 // 包内固定域名池（轮询）
 const BUILTIN_DOMAIN_POOL = [
-	// "https://wkksw.hnhhr.com",
+	"https://wkksw.hnhhr.com",
 	// 测试
-	"https://h5.paiduiyun.top",
-	// 'https://wqz2w.hlwea.com',
-	// 'https://wqz3w.eevlo.com',
-	// 'https://wqz4w.fheud.com'
+	// "https://h5.paiduiyun.top",
+	'https://wqz2w.hlwea.com',
+	'https://wqz3w.eevlo.com',
+	'https://wqz4w.fheud.com'
 ];
 // 单独域名（桥接域名），用于拉取后台下发的可用域名
 const BRIDGE_DOMAIN = 'https://wqz2w.hlwea.com';
