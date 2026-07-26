@@ -435,6 +435,7 @@ async function http(url, data, method = 'GET') {
                 title: res.data.msg,
                 icon: 'none'
               })
+              reject(res.data)
             }else if (res.data.code == 401) {
               // 清除用户登录状态
               uni.removeStorageSync('ssid');
