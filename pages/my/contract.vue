@@ -132,12 +132,12 @@ export default {
     }
   },
   methods: {
-    loadContractData(id) {
+    loadContractData(id,cid) {
         // 模拟从服务器加载合同数据
         // 实际项目中应该调用API获取真实数据
         console.log('加载合同数据', this.contractInfo)
         this.$http(
-            '/item/list/contract', {id:id}, "POST").then(res => {
+            '/item/list/contract', {id:id,cid:cid}, "POST").then(res => {
             console.log('数据',res.data)
 			this.helpContent = this.$noteChange(res.data.contract_content);
             this.contractInfo = res.data
@@ -147,7 +147,7 @@ export default {
   },
   onLoad(e) {
     // 可以在这里加载合同数据
-    this.loadContractData(e.id)
+    this.loadContractData(e.id,e.cid)
   },
   
 }

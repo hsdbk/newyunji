@@ -39,7 +39,7 @@
     </view>
 
     <!-- 查看合同按钮 -->
-    <view class="contract-btn" @click="viewContract(project.id)">查看合同</view>
+    <view class="contract-btn" @click="viewContract(project.id,project.cid)">查看合同</view>
 
     <!-- 期数列表标题 -->
     <view class="periods-header">
@@ -79,10 +79,10 @@ export default {
   },
   methods: {
     // 查看合同
-    viewContract(id) {
+    viewContract(id,cid) {
       // 合同查看逻辑
       uni.navigateTo({
-      	url:'/pages/my/contract?id=' + id
+      	url:'/pages/my/contract?id=' + id + '&cid=' + cid
       })
     },
     // 获取项目数据（实际项目中实现）
