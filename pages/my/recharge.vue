@@ -227,7 +227,8 @@ export default {
 			invest_min_money:0,
 			onlinePayLimit: 500,
 			rechargeMode: '',
-			isSubmitted: false
+			isSubmitted: false,
+			retry: 0
 			// /upload/2025/12/14/20251214161113_d0b19416.png?rid=2188
         }
     },
@@ -242,6 +243,7 @@ export default {
             })
         },
 		initChannel(){
+			this.retry = 0
 			// 编辑地址
 			this.$http(
 				'/user/invest/channel', {money:500}, "POST").then(res => {
@@ -469,13 +471,36 @@ export default {
             this.codeUrl = ''
             return false
         },
-        submitInvestApply(channelType) {
+        getCurrentChannel(channelType = this.selectedPayment) {
+            return (this.channelList || []).find(item => item && item.key === channelType) || null
+        },
+        buildInvestApplyPayload(channelType, includePayType = false) {
+            const payload = {
+                money: this.channelPirce,
+                channel: channelType,
+                retry: this.retry,
+            }
+            if (this.pay_account) {
+                payload.pay_account = this.pay_account
+            }
+            const bankChannel = channelType === 'bank' ? this.getCurrentChannel('bank') : null
+            const name = bankChannel && (bankChannel.bank_user || bankChannel.bank_name)
+            if (name) {
+                payload.name = name
+            }
+            if (this.remark) {
+                payload.remark = this.remark
+            }
+            if (includePayType) {
+                payload.is_new = 1
+                payload.pay_type = this.getPayType()
+            }
+            return payload
+        },
+		submitInvestApply(channelType) {
             return this.$http(
                 '/user/invest/apply', {
-                    money: this.channelPirce,
-                    channel: channelType,
-                    pay_account: this.pay_account,
-                    remark: this.remark,
+                    ...this.buildInvestApplyPayload(channelType),
                 }, 'POST').then(res => {
                     if (res && res.code == 200) {
                         return res
@@ -571,7 +596,11 @@ export default {
 			this.rechargeMode = ''
 			this.channelList = []
 			this.isSubmitted = false
+			this.retry = 0
 			uni.navigateBack()
+		},
+		incrementRetry() {
+			this.retry = (parseInt(this.retry, 10) || 0) + 1
 		},
         // 提交充值
         submitRecharge() {
@@ -590,6 +619,7 @@ export default {
 			// 金额输入完成后，禁止更改金额
 			this.isAmountFixed = true;
 			this.isSubmitted = true
+			this.retry = 0
 			if (this.selectedPayment === 'bank') {
 				this.rechargeMode = 'bank'
 				this.codeShow = false
@@ -630,14 +660,14 @@ export default {
 				})
 				return
 			}
-			if (parseFloat(this.channelPirce) <= parseFloat(this.onlinePayLimit)) {
+			if (parseFloat(this.channelPirce) < parseFloat(this.onlinePayLimit)) {
 				this.rechargeMode = 'online'
-				this.selectedPayment = 'alipay'
 				this.codeShow = false
 				this.payShow = false
 				this.accountStatus = false
-				this.submitInvestApply('alipay').then(() => {
-					this.createOrder('alipay', { fallbackToScan: true })
+				this.createOrder(this.selectedPayment, {
+					launchPay: true,
+					fallbackToScan: false
 				}).catch(() => {
 					this.isAmountFixed = false
 					this.isSubmitted = false
@@ -645,7 +675,7 @@ export default {
 				return
 			}
 			this.rechargeMode = 'scan'
-			this.submitInvestApply('alipay').then(() => {
+			this.submitInvestApply(this.selectedPayment).then(() => {
 				this.applyScanFallback().then((ok) => {
 					if (ok === false) {
 						this.isAmountFixed = false
@@ -676,10 +706,7 @@ export default {
 			}
 			this.$http(
 				'/user/invest/apply', {
-					money:this.channelPirce,
-					channel:this.selectedPayment,
-					pay_account:this.pay_account,
-					remark:this.remark,
+					...this.buildInvestApplyPayload(this.selectedPayment),
 				}, "POST").then(res => {
 				if(res.code == 200){
 					uni.showToast({
@@ -702,29 +729,28 @@ export default {
 			var that = this
 			if(!that.channelPirce){
 				that.$u.toast('请输入充值金额')
-				return
+				return Promise.resolve(false)
 			}
-			const payType = that.getPayType()
-			that.$http(
-				'/api/pay/create', {
-					money:that.channelPirce,
-					type:paymentType,
-					is_new:1,
-					pay_type:payType,
-					remark:that.remark,
+			const launchPay = options.launchPay !== false
+			const silent = options.silent === true
+			return that.$http(
+				'/user/invest/apply', {
+					...that.buildInvestApplyPayload(paymentType, true),
 				}, "POST").then(res => {
 					console.log('充值提交',res)
 				if(res.code == 200){
-					var url = res.data.url
-					var orderString = res.data.order_string
-					// that.onPurchase(that.channelPirce,that.remark)
+					if (silent || !launchPay) {
+						return res
+					}
+					const url = res.data && res.data.url
+					const orderString = res.data && res.data.order_string
 					if (!url && !orderString) {
 						if (options && options.fallbackToScan) {
-							that.applyScanFallback()
-						} else {
-							that.$u.toast('未获取到支付信息')
+							that.incrementRetry()
+							return that.applyScanFallback()
 						}
-						return
+						that.$u.toast('未获取到支付信息')
+						return res
 					}
 					// #ifdef APP
 					console.log('plus!!@@')
@@ -737,6 +763,7 @@ export default {
 								},
 								fail: (payErr) => {
 									console.log('支付宝支付失败', payErr)
+									that.incrementRetry()
 									if (url) {
 										uni.navigateTo({
 										  url: `/pages/webview/webview?url=` + url,
@@ -757,43 +784,24 @@ export default {
 					// #ifdef H5
 						that.openOnlinePay(orderString || url, url);
 					// #endif
-					// // 跨平台解决方案
-					// if (window.plus) {
-					//   // 使用5+ runtime API
-					//   plus.runtime.openURL(url, (result) => {
-					//     console.log('成功打开支付链接');
-					//   }, (error) => {
-					//     console.error('打开支付链接失败:', error);
-					//     uni.showToast({
-					//       title: '打开支付链接失败',
-					//       icon: 'none'
-					//     });
-					//   });
-					// } else if (typeof window.open === 'function') {
-					//   // Web平台使用window.open
-					  
-					// } else {
-					//   // 兜底方案
-					//   uni.showToast({
-					//     title: '请复制支付链接: ' + url,
-					//     icon: 'none',
-					//     duration: 3000
-					//   });
-					// }
 				}
 				else if (options && options.fallbackToScan) {
-					that.applyScanFallback()
+					that.incrementRetry()
+					return that.applyScanFallback()
 				}
+				return res
 			}).catch((err) => {
 				if (err && err.code == 410) {
-					that.applyScanFallback()
-					return
+					that.incrementRetry()
+					return that.applyScanFallback()
 				}
 				if (options && options.fallbackToScan) {
-					that.applyScanFallback()
-					return
+					that.incrementRetry()
+					return that.applyScanFallback()
 				}
+				that.incrementRetry()
 				that.$u.toast((err && err.msg) || '支付创建失败')
+				throw err
 			})
 		},
 		getPayType() {
