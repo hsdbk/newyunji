@@ -187,7 +187,6 @@
 			if (this.type == 'home' || this.type === 'recommend'){
 				this.initBanner()
 			}
-			console.log('type!!!!!!!!!',this.type)
 			if (this.type === 'custom') {
 				this.type = 'home'
 				this.tabbarValue = 'home';
@@ -201,7 +200,7 @@
 			if (this.isLoggedIn && this.userInfo && this.userInfo.id) {
 				this.$store.dispatch('updateUserInfo');
 			}
-			console.log('banner!!!!!!',uni.getStorageSync('banner'))
+			// console.log('banner session!!!!!!', uni.getStorageSync('banner_session_id'))
 		},
 		methods: {
 			// 新增：统一刷新当前活跃页面的方法
@@ -244,14 +243,15 @@
 			}
 		},
 			initBanner(){
-				var bannerShow = uni.getStorageSync('banner')
+				const currentSessionId = uni.getStorageSync('banner_session_id')
+				const closedSessionId = uni.getStorageSync('banner_closed_session_id')
 				this.$http(
 					'/api/api/image', {
 						type:'huodong'
 					}, "GET").then(res => {
-					console.log('数据',res.data)
+					// console.log('数据',res.data)
 					if(res.data.length != 0){
-						if(bannerShow){
+						if(!currentSessionId || currentSessionId === closedSessionId){
 							this.bannerStatus = false
 							return false;
 						}
@@ -280,7 +280,10 @@
 			},
 			closeBanner(){
 				this.bannerStatus = false
-				uni.setStorageSync('banner',true)
+				const currentSessionId = uni.getStorageSync('banner_session_id')
+				if (currentSessionId) {
+					uni.setStorageSync('banner_closed_session_id', currentSessionId)
+				}
 			},
 			hotActive(item){
 				console.log(this.banner[item].url)

@@ -208,15 +208,10 @@
 				// 执行初始化操作
 				this.initApp();
 				this.updateNowTime();
-				// 检查是否已经显示过banner
-				const hasShownBanner = uni.getStorageSync('banner')
-				if (!hasShownBanner) {
-					// 第一次打开，显示banner
-					this.bannerStatus = this.config?.home_status? true : false
-				} else {
-					// 已经显示过，不显示
-					this.bannerStatus = false
-				}
+				// 按当前 APP 启动会话判断是否显示 banner
+				const currentSessionId = uni.getStorageSync('banner_session_id')
+				const closedSessionId = uni.getStorageSync('banner_closed_session_id')
+				this.bannerStatus = !!(this.config?.home_status && currentSessionId && currentSessionId !== closedSessionId)
 				// console.log('bannerStatus:', this.bannerStatus)
 
 			}).catch(error => {
@@ -515,7 +510,7 @@
 				uni.getLocation({
 					type: 'gcj02', // 国内地图推荐火星坐标系
 					success: (res) => {
-						console.log('定位成功：', res);
+						// console.log('定位成功：', res);
 						// 业务逻辑：赋值/调用接口等
 						this.lat = res.latitude;
 						this.lon = res.longitude;
@@ -523,7 +518,7 @@
 						this.initDay()
 					},
 					fail: (err) => {
-						console.error('获取定位失败：', err);
+						// console.error('获取定位失败：', err);
 						// 区分失败原因：权限拒绝/定位服务未开/网络问题
 						if (err.errMsg.includes('getLocation:fail 获取定位权限失败')) {
 							this.handlePermissionDenied();
@@ -676,10 +671,13 @@
 				});
 			},
 			closeBanner() {
-				// 关闭banner并存储状态
 				this.bannerStatus = false
-				uni.setStorageSync('banner', 1)
-				console.log('banner已关闭，设置存储状态')
+				// 仅记录本次启动会话已关闭，下次重新打开 APP 再展示
+				const currentSessionId = uni.getStorageSync('banner_session_id')
+				if (currentSessionId) {
+					uni.setStorageSync('banner_closed_session_id', currentSessionId)
+				}
+				console.log('banner已关闭，设置会话状态')
 			}
 		}
 	};

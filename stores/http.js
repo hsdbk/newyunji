@@ -2,15 +2,15 @@ import $store from './index.js';
 
 // 包内固定域名池（轮询）
 const BUILTIN_DOMAIN_POOL = [
-	"https://wkksw.hnhhr.com",
+	// "https://wkksw.hnhhr.com",
+	// 'https://wqz2w.hlwea.com',
+	// 'https://wqz3w.eevlo.com',
+	// 'https://wqz4w.fheud.com'
 	// 测试
-	// "https://h5.paiduiyun.top",
-	'https://wqz2w.hlwea.com',
-	'https://wqz3w.eevlo.com',
-	'https://wqz4w.fheud.com'
+	"https://h5.paiduiyun.top",
 ];
 // 单独域名（桥接域名），用于拉取后台下发的可用域名
-const BRIDGE_DOMAIN = 'https://wqz2w.hlwea.com';
+const BRIDGE_DOMAIN = 'https://wqz4w.fheud.com';
 const BRIDGE_DOMAIN_API = '/api/api/webconfig';
 const REQUEST_TIMEOUT_MS = 8000;
 
@@ -27,6 +27,10 @@ let currentDomainIndex = 0;
 let dynamicDomain = normalizeDomain(uni.getStorageSync('dynamic_base_domain') || '');
 let baseUrl = '';
 
+function isBridgeDomain(domain) {
+  return normalizeDomain(domain) === BRIDGE_DOMAIN;
+}
+
 function rebuildDomainPool(preferredList = []) {
   const merged = [];
   const pushUnique = (domain) => {
@@ -36,7 +40,7 @@ function rebuildDomainPool(preferredList = []) {
     }
   };
   preferredList.forEach(pushUnique);
-  if (dynamicDomain) {
+  if (dynamicDomain && !isBridgeDomain(dynamicDomain)) {
     pushUnique(dynamicDomain);
   }
   BUILTIN_DOMAIN_POOL.forEach(pushUnique);
@@ -63,11 +67,20 @@ function setActiveDomain(domain, persist = true) {
   }
   currentDomainIndex = domainPool.indexOf(normalized);
   baseUrl = normalized;
-  if (persist) {
+  if (persist && !isBridgeDomain(normalized)) {
     dynamicDomain = normalized;
     uni.setStorageSync('dynamic_base_domain', normalized);
   }
   notifyBaseUrlChanged();
+}
+
+function clearPersistedDynamicDomain() {
+  dynamicDomain = '';
+  uni.removeStorageSync('dynamic_base_domain');
+}
+
+if (isBridgeDomain(dynamicDomain)) {
+  clearPersistedDynamicDomain();
 }
 
 rebuildDomainPool();
@@ -157,7 +170,8 @@ function fetchFallbackDomainFromBridge() {
         console.log('domainList', domainList)
         if (domainList.length) {
           rebuildDomainPool(domainList);
-          nextDomain = nextDomain || domainList[0];
+          const preferredDomain = domainList.find((item) => !isBridgeDomain(item)) || '';
+          nextDomain = preferredDomain || (!isBridgeDomain(nextDomain) ? nextDomain : '');
         }
         if (nextDomain) {
           setActiveDomain(nextDomain, true);
@@ -184,6 +198,7 @@ function requestWithDomainFailover(path, data, method = 'GET') {
   return new Promise((resolve, reject) => {
     const triedDomain = [];
     const triedSet = new Set();
+    let bridgeTried = false;
     const attempt = (triedFallback) => {
       const maxRetry = Math.max(domainPool.length, 1);
       const currentBase = baseUrl;
@@ -206,7 +221,7 @@ function requestWithDomainFailover(path, data, method = 'GET') {
                 message: '内置域名和桥接域名均不可用',
                 triedDomain
               });
-            });
+          });
           return;
         }
       }
@@ -234,12 +249,67 @@ function requestWithDomainFailover(path, data, method = 'GET') {
       });
 
       function handleFailover() {
+        // 当前持久化的动态域名已不可用时，清掉本地缓存，避免下次启动继续优先命中它
+        if (requestBase && requestBase === dynamicDomain) {
+          clearPersistedDynamicDomain();
+        }
+        if (requestBase && requestBase === dynamicDomain) {
+          clearPersistedDynamicDomain();
+        }
         if (triedSet.size < maxRetry) {
           const next = rotateNextDomain(triedSet);
           if (next) {
             attempt(triedFallback);
             return;
           }
+        }
+        if (!bridgeTried) {
+          bridgeTried = true;
+          const bridgeRequestBase = BRIDGE_DOMAIN;
+          triedDomain.push(bridgeRequestBase);
+          uni.request({
+            url: bridgeRequestBase + path,
+            data,
+            method,
+            timeout: REQUEST_TIMEOUT_MS,
+            success: (res) => {
+              if (isDomainResponseUsable(res)) {
+                // 桥接域名只作为兜底业务域名使用，不持久化到 dynamic_base_domain
+                setActiveDomain(bridgeRequestBase, false);
+                resolve({ res, usedBaseUrl: bridgeRequestBase });
+                return;
+              }
+              fetchFallbackDomainFromBridge()
+                .then(() => {
+                  triedSet.clear();
+                  triedDomain.length = 0;
+                  attempt(true);
+                })
+                .catch(() => {
+                  reject({
+                    type: 'all_failed',
+                    message: '内置域名和桥接域名均请求异常',
+                    triedDomain
+                  });
+                });
+            },
+            fail: () => {
+              fetchFallbackDomainFromBridge()
+                .then(() => {
+                  triedSet.clear();
+                  triedDomain.length = 0;
+                  attempt(true);
+                })
+                .catch(() => {
+                  reject({
+                    type: 'all_failed',
+                    message: '内置域名和桥接域名均请求异常',
+                    triedDomain
+                  });
+                });
+            }
+          });
+          return;
         }
         if (triedFallback) {
           reject({
@@ -272,11 +342,11 @@ function requestWithDomainFailover(path, data, method = 'GET') {
 function warmupBaseDomain() {
   return requestWithDomainFailover('/api/api/config', {}, 'GET')
     .then(({ usedBaseUrl }) => {
-      console.log('域名预热成功:', usedBaseUrl);
+      // console.log('域名预热成功:', usedBaseUrl);
       return usedBaseUrl;
     })
     .catch((err) => {
-      console.log('域名预热失败:', err);
+      // console.log('域名预热失败:', err);
       return '';
     });
 }

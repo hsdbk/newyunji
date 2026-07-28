@@ -5,6 +5,11 @@ export default {
 	onLaunch: function () {
 		console.log('App Launch')
 		uni.removeStorageSync('phone_auth_denied_quit')
+		// 每次真正启动 APP 时生成新的 banner 会话标识
+		uni.setStorageSync('banner_session_id', String(Date.now()))
+		uni.removeStorageSync('banner_closed_session_id')
+		// 兼容旧逻辑，避免历史持久化状态影响新规则
+		uni.removeStorageSync('banner')
 		try {
 			$store.commit('setBaseUrl', getBaseUrl())
 		} catch (e) {}

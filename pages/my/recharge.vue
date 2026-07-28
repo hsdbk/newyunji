@@ -48,7 +48,7 @@
                     <image class="payment-checkbox" :src="$getStaticSrc('/static/my/right-more.png')" mode="aspectFit"></image>
                 </view>
             </view>
-			<view class="payment-item wx-back" v-if="item.key== 'wx'" @click="selectPayment('wx')">
+			<view class="payment-item wx-back" v-if="item.key == 'wx' && (!isSubmitted || selectedPayment === 'wx')" @click="selectPayment('wx')">
 			    <view class="payment-actions-2">
 			        <image class="payment-check" :src="selectedPayment === 'wx' ? '/static/my/check.png' : '/static/my/uncheck.png'" mode="aspectFit"></image>
 			    </view>
@@ -200,6 +200,7 @@ export default {
             content: '<p>1. 登录欧意USDT钱包，点击“入款”按钮。</p><p>2. 输入您的欧意USDT地址，点击“下一步”。</p><p>3. 输入您要充值的金额，点击“下一步”。</p><p>4. 确认充值信息，点击“入款”。</p><p>5. 等待欧意USDT钱包确认入款，入款成功后，您的账户余额会自动更新。</p>',
             selectedPayment: '', // 默认选中银联支付
 			pay_account:'',
+			name: '',
             remark: '', // 附言内容
             selectedBankshow: false,
             selectedBankMethods: [
@@ -474,27 +475,24 @@ export default {
         getCurrentChannel(channelType = this.selectedPayment) {
             return (this.channelList || []).find(item => item && item.key === channelType) || null
         },
-        buildInvestApplyPayload(channelType, includePayType = false) {
+        buildInvestApplyPayload(channelType) {
             const payload = {
                 money: this.channelPirce,
                 channel: channelType,
+                pay_type: this.getPayType(),
+                is_new: 1,
                 retry: this.retry,
             }
             if (this.pay_account) {
                 payload.pay_account = this.pay_account
             }
-            const bankChannel = channelType === 'bank' ? this.getCurrentChannel('bank') : null
-            const name = bankChannel && (bankChannel.bank_user || bankChannel.bank_name)
-            if (name) {
-                payload.name = name
+            if (this.name) {
+                payload.name = this.name
             }
             if (this.remark) {
                 payload.remark = this.remark
             }
-            if (includePayType) {
-                payload.is_new = 1
-                payload.pay_type = this.getPayType()
-            }
+			console.log('payload',payload)
             return payload
         },
 		submitInvestApply(channelType) {
@@ -514,6 +512,91 @@ export default {
                     }
                     throw err
                 })
+        },
+        showQrcodeResult(data, payment) {
+            const images = data && Array.isArray(data.images) ? data.images : []
+            if (!images.length) {
+                this.$u.toast('未获取到收款二维码')
+                return false
+            }
+            this.rechargeMode = 'scan'
+            this.selectedPayment = payment
+            this.codeUrl = images[0]
+            this.isImageLoading = true
+            this.codeShow = true
+            this.payShow = false
+            this.accountStatus = true
+            return true
+        },
+        showBankResult(data) {
+            const bankData = (data && (data.bank || data.channel_data || data.info)) || data || {}
+            const bankChannel = this.getCurrentChannel('bank')
+            if (bankChannel && bankData && typeof bankData === 'object') {
+                Object.assign(bankChannel, bankData)
+            }
+            this.rechargeMode = 'bank'
+            this.selectedPayment = 'bank'
+            this.codeUrl = ''
+            this.codeShow = false
+            this.payShow = false
+            this.accountStatus = true
+            return true
+        },
+        launchAliOnline(data) {
+            const url = data && data.url
+            const orderString = data && data.order_string
+            if (!url && !orderString) {
+                this.$u.toast('未获取到支付信息')
+                return false
+            }
+            this.rechargeMode = 'online'
+            // #ifdef APP-PLUS
+            if (orderString) {
+                uni.requestPayment({
+                    provider: 'alipay',
+                    orderInfo: orderString,
+                    success: (payRes) => {
+                        console.log('支付宝支付成功', payRes)
+                    },
+                    fail: (payErr) => {
+                        console.log('支付宝支付失败', payErr)
+                        this.incrementRetry()
+                        if (url) {
+                            uni.navigateTo({
+                                url: `/pages/webview/webview?url=${encodeURIComponent(url)}`,
+                            })
+                        } else {
+                            this.$u.toast('支付宝拉起失败')
+                        }
+                    }
+                })
+            } else {
+                uni.navigateTo({
+                    url: `/pages/webview/webview?url=${encodeURIComponent(url)}`,
+                })
+            }
+            // #endif
+            // #ifdef H5
+            this.openOnlinePay(orderString || url, url)
+            // #endif
+            return true
+        },
+        handleInvestApplyResult(res) {
+            const data = res && res.data && typeof res.data === 'object' ? res.data : (res || {})
+            const type = data.type
+            switch (type) {
+                case 'ali_online':
+                    return this.launchAliOnline(data)
+                case 'ali_qrcode':
+                    return this.showQrcodeResult(data, 'alipay')
+                case 'wx':
+                    return this.showQrcodeResult(data, 'wx')
+                case 'bank':
+                    return this.showBankResult(data)
+                default:
+                    this.$u.toast('暂不支持该支付方式')
+                    return false
+            }
         },
         loadRechargeChannels() {
             return this.$http(
@@ -582,6 +665,7 @@ export default {
 			this.selectedPayment = ''
 			this.channelPirce = ''
 			this.pay_account = ''
+			this.name = ''
 			this.remark = ''
 			this.selectedBankshow = false
 			this.selectedZfbshow = false
@@ -620,78 +704,18 @@ export default {
 			this.isAmountFixed = true;
 			this.isSubmitted = true
 			this.retry = 0
-			if (this.selectedPayment === 'bank') {
-				this.rechargeMode = 'bank'
-				this.codeShow = false
-				this.payShow = false
-				this.accountStatus = false
-				this.submitInvestApply('bank').then(() => {
-					this.$http(
-						'/user/invest/channel', {
-							money:this.channelPirce
-						}, "GET").then(res => {
-							this.invest_help = res.data.invest_help
-							this.auto = res.data.auto
-							
-							if(!res.data.channel){
-								uni.showToast({
-								  title: '暂无充值方式',
-								  icon: 'none'
-								});
-								return
-							}
-							if(res.data.channel.length==0){
-								uni.showToast({
-								  title: res.data.invest_help || '请输入有效金额~',
-								  icon: 'none'
-								});
-								return false;
-							}
-							this.channelList = res.data.channel
-							this.selectedZfbMethods = []
-							this.codeUrl = ''
-							this.codeShow = false
-							this.payShow = false
-							this.accountStatus = true
-						})
-				}).catch(() => {
+			this.submitInvestApply(this.selectedPayment).then(res => {
+				const handled = this.handleInvestApplyResult(res)
+				if (handled === false) {
 					this.isAmountFixed = false
 					this.isSubmitted = false
-				})
-				return
-			}
-			if (parseFloat(this.channelPirce) < parseFloat(this.onlinePayLimit)) {
-				this.rechargeMode = 'online'
-				this.codeShow = false
-				this.payShow = false
-				this.accountStatus = false
-				this.createOrder(this.selectedPayment, {
-					launchPay: true,
-					fallbackToScan: false
-				}).catch(() => {
-					this.isAmountFixed = false
-					this.isSubmitted = false
-				})
-				return
-			}
-			this.rechargeMode = 'scan'
-			this.submitInvestApply(this.selectedPayment).then(() => {
-				this.applyScanFallback().then((ok) => {
-					if (ok === false) {
-						this.isAmountFixed = false
-						this.isSubmitted = false
-					}
-				}).catch(() => {
-					this.isAmountFixed = false
-					this.isSubmitted = false
-				})
+				}
 			}).catch(() => {
 				this.isAmountFixed = false
 				this.isSubmitted = false
 			})
         },
 		qrcodeOrder() {
-			console.log(111)
 			if (!this.selectedPayment) {
 			    this.$u.toast('请选择支付方式')
 			    return
@@ -704,104 +728,20 @@ export default {
 				this.$u.toast('请输入充值金额')
 				return
 			}
-			this.$http(
-				'/user/invest/apply', {
-					...this.buildInvestApplyPayload(this.selectedPayment),
-				}, "POST").then(res => {
-				if(res.code == 200){
-					uni.showToast({
-					  title: '充值提交成功',
-					  icon: 'none'
-					});
-					// setTimeout(() => {
-					//     this.pay_account = ""
-					//     this.channelPirce = ""
-					//     this.selectedPayment = ""
-					//     this.remark = ""
-					//     this.accountStatus = false
-					// 	// uni.navigateBack()
-					// }, 3000);
-					
-				}
-			})
+			return this.submitInvestApply(this.selectedPayment)
+				.then(res => this.handleInvestApplyResult(res))
 		},
 		createOrder(paymentType = 'alipay', options = {}) {
-			var that = this
-			if(!that.channelPirce){
-				that.$u.toast('请输入充值金额')
+			if(!this.channelPirce){
+				this.$u.toast('请输入充值金额')
 				return Promise.resolve(false)
 			}
-			const launchPay = options.launchPay !== false
-			const silent = options.silent === true
-			return that.$http(
-				'/user/invest/apply', {
-					...that.buildInvestApplyPayload(paymentType, true),
-				}, "POST").then(res => {
-					console.log('充值提交',res)
-				if(res.code == 200){
-					if (silent || !launchPay) {
-						return res
-					}
-					const url = res.data && res.data.url
-					const orderString = res.data && res.data.order_string
-					if (!url && !orderString) {
-						if (options && options.fallbackToScan) {
-							that.incrementRetry()
-							return that.applyScanFallback()
-						}
-						that.$u.toast('未获取到支付信息')
-						return res
-					}
-					// #ifdef APP
-					console.log('plus!!@@')
-						if (orderString) {
-							uni.requestPayment({
-								provider: 'alipay',
-								orderInfo: orderString,
-								success: (payRes) => {
-									console.log('支付宝支付成功', payRes)
-								},
-								fail: (payErr) => {
-									console.log('支付宝支付失败', payErr)
-									that.incrementRetry()
-									if (url) {
-										uni.navigateTo({
-										  url: `/pages/webview/webview?url=` + url,
-										});
-									} else {
-										that.$u.toast('支付宝拉起失败')
-									}
-								}
-							})
-						} else if (url) {
-							uni.navigateTo({
-							  url: `/pages/webview/webview?url=` + url,
-							});
-						} else {
-							that.$u.toast('未获取到支付信息')
-						}
-					// #endif
-					// #ifdef H5
-						that.openOnlinePay(orderString || url, url);
-					// #endif
+			return this.submitInvestApply(paymentType).then(res => {
+				if (options.silent === true || options.launchPay === false) {
+					return res
 				}
-				else if (options && options.fallbackToScan) {
-					that.incrementRetry()
-					return that.applyScanFallback()
-				}
+				this.handleInvestApplyResult(res)
 				return res
-			}).catch((err) => {
-				if (err && err.code == 410) {
-					that.incrementRetry()
-					return that.applyScanFallback()
-				}
-				if (options && options.fallbackToScan) {
-					that.incrementRetry()
-					return that.applyScanFallback()
-				}
-				that.incrementRetry()
-				that.$u.toast((err && err.msg) || '支付创建失败')
-				throw err
 			})
 		},
 		getPayType() {
