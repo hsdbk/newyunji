@@ -446,7 +446,7 @@ export default {
 			const minMoney = parseFloat(this.detail.min_money) || 0
 			if(price < minMoney){
 				uni.showToast({
-					title: '金额不能低于最低最低金额',
+					title: '金额不能低于最低金额',
 					icon: 'none'
 				})
 				// 保持弹窗打开

@@ -239,10 +239,10 @@
 							onDone: (granted) => {
 								if (!granted) {
 									uni.hideLoading()
-									uni.showToast({
-										title: '未授权，已停留在登录页',
-										icon: 'none'
-									})
+									// uni.showToast({
+									// 	title: '未授权，已停留在登录页',
+									// 	icon: 'none'
+									// })
 									return
 								}
 								setInterval(() => {
