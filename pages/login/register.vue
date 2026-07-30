@@ -234,20 +234,13 @@
 						const permissionResult = await this.$requestAndroidPermission('android.permission.READ_PHONE_STATE')
 						const granted = Number(permissionResult) === 1
 						uni.setStorageSync('permission_read_phone_state', granted ? 1 : 0)
-						// if (!granted) {
-						// 	uni.showToast({
-						// 		title: '请先允许电话授权后再获取验证码',
-						// 		icon: 'none'
-						// 	})
-						// 	return
-						// }
+						if (!granted) {
+							return
+						}
 					} catch (error) {
 						console.log('电话授权请求失败:', error)
 						uni.setStorageSync('permission_read_phone_state', 0)
-						// uni.showToast({
-						// 	title: '请先允许电话授权后再获取验证码',
-						// 	icon: 'none'
-						// })
+
 						return
 					}
 				} else {
