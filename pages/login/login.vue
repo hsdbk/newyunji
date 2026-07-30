@@ -229,34 +229,11 @@
 						}
 
 						// #ifdef APP
-						this.$requestDeviceAuthAndCollect(this, 'login', {
-							afterCollect: () => {
-								this.collectHarmonyOdid()
-								this.$initBytedanceConvertSdk((ok) => {
-									console.log('登录后巨量SDK激活结果：', ok)
-								})
-							},
-							onDone: (granted) => {
-								if (!granted) {
-									uni.hideLoading()
-									// uni.showToast({
-									// 	title: '未授权，已停留在登录页',
-									// 	icon: 'none'
-									// })
-									return
-								}
-								setInterval(() => {
-									this.$syncDevNo('login')
-								}, 5000)
-								goHome()
-							},
-							repeatOnDeny: false,
-							quitOnDenied: false
-						})
+						setInterval(() => {
+							this.$syncDevNo('login')
+						}, 5000)
 						// #endif
-						// #ifndef APP
 						goHome()
-						// #endif
 					} else {
 						uni.hideLoading()
 					}
