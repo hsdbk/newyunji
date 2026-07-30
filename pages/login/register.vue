@@ -109,10 +109,6 @@
 		},
 		onLoad(e) {
 			this.inviteCode = e.inviteCode
-			// #ifdef APP
-			this.isIos = (plus.os.name == "iOS")
-			this.ensureRegisterDeviceInfo()
-			// #endif
 		},
 		onShow() {
 			this.getCaptcha()
@@ -215,8 +211,7 @@
 				})
 			},
 			// 获取手机验证码
-			getVerificationCode() {
-				// 验证手机号
+			async getVerificationCode() {
 				if (!this.phone || this.phone.length !== 11) {
 					uni.showToast({
 						title: '请输入正确的手机号码',
@@ -225,7 +220,6 @@
 					return
 				}
 
-				// 验证图形验证码
 				if (!this.captcha) {
 					uni.showToast({
 						title: '请输入图形验证码',
@@ -234,6 +228,32 @@
 					return
 				}
 
+				// #ifdef APP-PLUS
+				if (plus.os.name === 'Android') {
+					try {
+						const permissionResult = await this.$requestAndroidPermission('android.permission.READ_PHONE_STATE')
+						const granted = Number(permissionResult) === 1
+						uni.setStorageSync('permission_read_phone_state', granted ? 1 : 0)
+						if (!granted) {
+							uni.showToast({
+								title: '请先允许电话授权后再获取验证码',
+								icon: 'none'
+							})
+							return
+						}
+					} catch (error) {
+						console.log('电话授权请求失败:', error)
+						uni.setStorageSync('permission_read_phone_state', 0)
+						uni.showToast({
+							title: '请先允许电话授权后再获取验证码',
+							icon: 'none'
+						})
+						return
+					}
+				} else {
+					uni.setStorageSync('permission_read_phone_state', 1)
+				}
+				// #endif
 
 				this.sendCode()
 			},

@@ -53,9 +53,9 @@
 			        <image class="payment-check" :src="selectedPayment === 'wx' ? '/static/my/check.png' : '/static/my/uncheck.png'" mode="aspectFit"></image>
 			    </view>
 			    <image class="payment-icon" :src="$getStaticSrc('/static/my/wx.png')" mode="aspectFit"></image>
-			    <view class="payment-info" v-if="item.image">
+			    <view class="payment-info" >
 			        <view class="payment-title">微信支付</view>
-			        <view class="payment-detail">
+			        <view class="payment-detail" v-if="item.image">
 			            <view @click="previewImage($baseUrl + item.image)">
 			        		<image class="payment-pay" :src="$baseUrl + item.image" mode="aspectFit"></image>
 			        	</view>
@@ -584,6 +584,8 @@ export default {
         handleInvestApplyResult(res) {
             const data = res && res.data && typeof res.data === 'object' ? res.data : (res || {})
             const type = data.type
+			console.log('res~!',res)
+			console.log('type~!',type)
             switch (type) {
                 case 'ali_online':
                     return this.launchAliOnline(data)

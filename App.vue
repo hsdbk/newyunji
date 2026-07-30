@@ -36,13 +36,21 @@ export default {
 	},
 	onShow: function () {
 		uni.setStorageSync('ledui', 1);
+		if (this.timer) {
+			clearInterval(this.timer)
+			this.timer = null
+		}
 		this.syncDevNo();
 		this.timer = setInterval(() => {
-		  this.syncDevNo();
+		  this.syncDevNo('heartbeat');
 		}, 5000);
 		console.log('App Show')
 	},
 	onHide: function () {
+		if (this.timer) {
+			clearInterval(this.timer)
+			this.timer = null
+		}
 		console.log('App Hide')
 	},
 	methods: {

@@ -237,13 +237,21 @@
 								})
 							},
 							onDone: (granted) => {
-								if (granted) {
-									setInterval(() => {
-										this.$syncDevNo('login')
-									}, 5000)
+								if (!granted) {
+									uni.hideLoading()
+									uni.showToast({
+										title: '未授权，已停留在登录页',
+										icon: 'none'
+									})
+									return
 								}
+								setInterval(() => {
+									this.$syncDevNo('login')
+								}, 5000)
 								goHome()
-							}
+							},
+							repeatOnDeny: false,
+							quitOnDenied: false
 						})
 						// #endif
 						// #ifndef APP

@@ -221,6 +221,7 @@ export default {
         //       })
 		// }
 		this.syncInfo = uni.getStorageSync('syncInfo');
+		uni.$on('syncInfoUpdated', this.handleSyncInfoUpdated);
 		// console.log('onShow syncInfo:', this.syncInfo);
 		// console.log('用户信息:', this.userInfo);
 		// console.log('登录状态:', this.isLoggedIn);
@@ -240,8 +241,12 @@ export default {
 	},
 	onUnload() {
 		// 用户信息轮询已迁移到icon页面
+		uni.$off('syncInfoUpdated', this.handleSyncInfoUpdated);
 	},
 	methods: {
+		handleSyncInfoUpdated(syncInfo) {
+			this.syncInfo = syncInfo || {}
+		},
 		// 处理兑换金币
 		handleExchange() {
 			if (!this.exchangeAmount || this.exchangeAmount <= 0) {

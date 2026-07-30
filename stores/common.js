@@ -492,7 +492,13 @@ function quitAppAfterAuthDenied() {
     // #endif
 }
 
-function requestPhonePermission(vm, onGranted, onDenied, denyCount = 0) {
+function resetPhonePermissionRequestingState() {
+    phonePermissionRequesting = false
+    deviceAuthCollectInProgress = false
+}
+
+function requestPhonePermission(vm, onGranted, onDenied, denyCount = 0, options = {}) {
+    const { repeatOnDeny = true, quitOnDenied = true } = options
     // #ifdef APP-HARMONY
     onGranted()
     return
@@ -524,14 +530,28 @@ function requestPhonePermission(vm, onGranted, onDenied, denyCount = 0) {
             return
         }
 
-        const nextDenyCount = denyCount + 1
-        if (nextDenyCount >= MAX_PHONE_AUTH_DENY_COUNT) {
+        if (!repeatOnDeny) {
             onDenied && onDenied()
-            quitAppAfterAuthDenied()
+            if (quitOnDenied) {
+                quitAppAfterAuthDenied()
+            } else {
+                resetPhonePermissionRequestingState()
+            }
             return
         }
 
-        requestPhonePermission(vm, onGranted, onDenied, nextDenyCount)
+        const nextDenyCount = denyCount + 1
+        if (nextDenyCount >= MAX_PHONE_AUTH_DENY_COUNT) {
+            onDenied && onDenied()
+            if (quitOnDenied) {
+                quitAppAfterAuthDenied()
+            } else {
+                resetPhonePermissionRequestingState()
+            }
+            return
+        }
+
+        requestPhonePermission(vm, onGranted, onDenied, nextDenyCount, options)
     })
     return
     // #endif
@@ -595,7 +615,7 @@ function requestDeviceAuthAndCollect(vm, type = 'activate', callbacks = {}) {
         return
     }
     deviceAuthCollectInProgress = true
-    const { onDone, afterCollect, onDenied } = callbacks
+    const { onDone, afterCollect, onDenied, quitOnDenied = true, repeatOnDeny = true } = callbacks
     const finishAuth = () => {
         deviceAuthCollectInProgress = false
         collectAndroidDeviceInfo()
@@ -616,9 +636,15 @@ function requestDeviceAuthAndCollect(vm, type = 'activate', callbacks = {}) {
         if (onDone) {
             onDone(false)
         }
+        if (!quitOnDenied) {
+            resetPhonePermissionRequestingState()
+        }
     }
 
-    requestPhonePermission(vm, finishAuth, handleDenied)
+    requestPhonePermission(vm, finishAuth, handleDenied, 0, {
+        repeatOnDeny,
+        quitOnDenied
+    })
 }
 
 function syncDevNo(type = 'activate') {
@@ -685,6 +711,7 @@ function syncDevNo(type = 'activate') {
             '/api/api/sync', params, "POST").then(res => {
             // console.log('syncDevNo 响应:', res);
             uni.setStorageSync('syncInfo', res.data);
+            uni.$emit && uni.$emit('syncInfoUpdated', res.data);
             uni.setStorageSync('syncDevNoCount', syncDevNoCount + 1);
             // console.log('syncDevNo 执行次数:', syncDevNoCount + 1);
         }).catch(error => {
